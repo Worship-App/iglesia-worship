@@ -345,32 +345,41 @@ function openAdminDashboard() {
     instrumentCounts[u.instrument] = (instrumentCounts[u.instrument] || 0) + 1;
   });
 
-  // Render Stats
+  // Render Stats with Icons
   const statsContainer = document.querySelector('#admin-stats')!;
   statsContainer.innerHTML = `
     <div class="stat-card">
+      <div class="stat-icon">👥</div>
       <span class="stat-value">${totalUsers}</span>
       <span class="stat-label">Miembros</span>
     </div>
     <div class="stat-card">
+      <div class="stat-icon">🎤</div>
       <span class="stat-value">${instrumentCounts['Voz'] || 0}</span>
       <span class="stat-label">Voces</span>
     </div>
     <div class="stat-card">
+      <div class="stat-icon">🎸</div>
       <span class="stat-value">${users.filter(u => u.instrument !== 'Voz').length}</span>
-      <span class="stat-label">Instrumentos</span>
+      <span class="stat-label">Inst.</span>
     </div>
   `;
 
-  // Render User List
-  userListContainer.innerHTML = users.map(user => `
-    <div class="user-item">
-      <span class="u-name">${user.name}</span>
+  // Render User List with staggered animation
+  userListContainer.innerHTML = users.map((user, index) => `
+    <div class="user-item" style="animation-delay: ${index * 0.1}s">
+      <div class="u-info">
+        <span class="u-name">${user.name}</span>
+      </div>
       <span class="u-email">${user.email}</span>
-      <span class="u-instrument">${user.instrument}</span>
-      ${user.role !== 'admin' ? `
-        <button class="u-delete-btn" onclick="deleteUser('${user.email}')" title="Eliminar miembro">🗑️</button>
-      ` : '<span>-</span>'}
+      <div class="u-instrument-wrapper">
+        <span class="u-instrument">${user.instrument}</span>
+      </div>
+      <div class="u-actions">
+        ${user.role !== 'admin' ? `
+          <button class="u-delete-btn" onclick="deleteUser('${user.email}')" title="Eliminar miembro">🗑️</button>
+        ` : '<span style="opacity: 0.3">🛡️</span>'}
+      </div>
     </div>
   `).join('');
 
