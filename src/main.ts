@@ -125,7 +125,14 @@ function renderSongs() {
 function openSongModal(song: Song) {
   modalTitle.textContent = song.title;
   modalAuthor.textContent = `Autor: ${song.author}`;
-  modalLyrics.innerHTML = song.lyrics.split('\n').map(line => line.trim() === '' ? '<br>' : `<div>${line}</div>`).join('');
+  // Render lyrics with sync index on non-empty lines only
+  let lineIndex = 0;
+  modalLyrics.innerHTML = song.lyrics.split('\n').map(line => {
+    if (line.trim() === '') return '<br>';
+    const el = `<div class="lyric-line" data-line="${lineIndex}">${line}</div>`;
+    lineIndex++;
+    return el;
+  }).join('');
   
   modalBody.scrollTop = 0; // Reset scroll position
 
@@ -267,13 +274,29 @@ function updateProgress() {
   progressBar.style.width = `${progressPercent}%`;
   currentTimeEl.textContent = formatTime(currentTime);
 
-  // Advanced Auto-scroll logic: Maintain "current" part in middle of viewport
+  // Active lyric line highlight (sync by time proportion)
   if (duration > 0) {
-    const scrollHeight = modalBody.scrollHeight - modalBody.clientHeight;
-    // Aumentamos el "lead time" a 6 segundos para que baje considerablemente más rápido
-    const predictiveTime = Math.min(currentTime + 6, duration);
-    const targetScroll = (predictiveTime / duration) * scrollHeight;
-    modalBody.scrollTop = targetScroll;
+    const lyricLines = modalLyrics.querySelectorAll<HTMLElement>('.lyric-line');
+    const totalLines = lyricLines.length;
+    if (totalLines > 0) {
+      const activeIndex = Math.min(
+        Math.floor((currentTime / duration) * totalLines),
+        totalLines - 1
+      );
+      lyricLines.forEach((el, i) => {
+        el.classList.toggle('lyric-active', i === activeIndex);
+        el.classList.toggle('lyric-past', i < activeIndex);
+      });
+      // Smooth scroll the active line into center view
+      const activeLine = lyricLines[activeIndex];
+      if (activeLine) {
+        const lineTop = activeLine.offsetTop;
+        const lineH = activeLine.offsetHeight;
+        const containerH = modalBody.clientHeight;
+        const target = lineTop - containerH / 2 + lineH / 2;
+        modalBody.scrollTo({ top: Math.max(0, target), behavior: 'smooth' });
+      }
+    }
   }
 }
 
