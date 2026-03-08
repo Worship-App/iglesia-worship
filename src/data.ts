@@ -54,7 +54,7 @@ export const songs: Song[] = [
       bass: 'https://www.cifraclub.com.br/en-espiritu-y-en-verdad/cuan-grande-es-dios/baixo.html',
       drums: 'https://www.songsterr.com/a/wsa/en-espiritu-y-en-verdad-cuan-grande-es-dios-drum-tab-s436034'
     },
-    audioUrl: '/audio/1.mp3.mp3'
+    audioUrl: '/audio/1.mp3'
   },
   {
     id: '2',
@@ -82,7 +82,7 @@ export const songs: Song[] = [
       bass: 'https://www.cifraclub.com.br/marcos-witt/gracias/baixo.html',
       drums: 'https://www.songsterr.com/a/wsa/marcos-witt-gracias-drum-tab-s422480'
     },
-    audioUrl: '/audio/2.mp3.mp3'
+    audioUrl: '/audio/2.mp3'
   },
   {
     id: '3',
@@ -113,7 +113,7 @@ export const songs: Song[] = [
       bass: 'https://www.cifraclub.com.br/marco-barrientos/hosanna/baixo.html',
       drums: 'https://www.songsterr.com/a/wsa/marco-barrientos-hosanna-drum-tab-s443422'
     },
-    audioUrl: '/audio/3.mp3.mp3'
+    audioUrl: '/audio/3.mp3'
   },
   {
     id: '4',
@@ -141,7 +141,7 @@ export const songs: Song[] = [
       bass: 'https://www.cifraclub.com.br/marcos-brunet/al-que-esta-sentado-en-el-trono/baixo.html',
       drums: 'https://www.songsterr.com/a/wsa/marcos-brunet-al-que-esta-sentado-en-el-trono-drum-tab-s443423'
     },
-    audioUrl: '/audio/4.mp3.mp3'
+    audioUrl: '/audio/4.mp3'
   },
   {
     id: '5',
@@ -173,7 +173,7 @@ export const songs: Song[] = [
       bass: 'https://www.cifraclub.com.br/sinach/way-maker/baixo.html',
       drums: 'https://www.songsterr.com/a/wsa/leeland-way-maker-live-drum-tab-s460627'
     },
-    audioUrl: '/audio/5.mp3.mp3'
+    audioUrl: '/audio/5.mp3'
   },
   {
     id: '6',
@@ -208,7 +208,7 @@ export const songs: Song[] = [
       bass: 'https://www.cifraclub.com.br/bethel-music/goodness-of-god/baixo.html',
       drums: 'https://www.songsterr.com/a/wsa/bethel-music-goodness-of-god-drum-tab-s467890'
     },
-    audioUrl: '/audio/6.mp3.mp3'
+    audioUrl: '/audio/6.mp3'
   },
   {
     id: '7',
@@ -236,7 +236,7 @@ export const songs: Song[] = [
       bass: 'https://www.cifraclub.com.br/marco-barrientos/rey-de-reyes/baixo.html',
       drums: 'https://www.songsterr.com/a/wsa/marco-barrientos-rey-de-reyes-drum-tab-s433722'
     },
-    audioUrl: '/audio/7.mp3.mp3'
+    audioUrl: '/audio/7.mp3'
   },
   {
     id: '8',
@@ -265,7 +265,7 @@ export const songs: Song[] = [
       bass: 'https://www.cifraclub.com.br/miel-san-marcos/grande-fuerte/baixo.html',
       drums: 'https://www.songsterr.com/a/wsa/miel-san-marcos-grande-y-fuerte-drum-tab-s489012'
     },
-    audioUrl: '/audio/8.mp3.mp3'
+    audioUrl: '/audio/8.mp3'
   },
   {
     id: '9',
@@ -303,7 +303,7 @@ export const songs: Song[] = [
       bass: 'https://www.cifraclub.com.br/hillsong-worship/what-a-beautiful-name/baixo.html',
       drums: 'https://www.songsterr.com/a/wsa/hillsong-worship-what-a-beautiful-name-drum-tab-s490123'
     },
-    audioUrl: '/audio/9.mp3.mp3'
+    audioUrl: '/audio/9.mp3'
   },
   {
     id: '10',
@@ -342,6 +342,6 @@ export const songs: Song[] = [
       bass: 'https://www.cifraclub.com.br/gateway-worship/danzando/baixo.html',
       drums: 'https://www.songsterr.com/a/wsa/gateway-worship-danzando-drum-tab-s501234'
     },
-    audioUrl: '/audio/10.mp3.mp3'
+    audioUrl: '/audio/10.mp3'
   }
 ];
