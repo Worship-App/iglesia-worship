@@ -134,55 +134,52 @@ body {
   }
   .user-item { 
     grid-template-columns: 1fr; 
-    gap: 0.5rem; 
+    gap: 1rem; 
     text-align: center;
-    padding: 2.5rem 1.5rem 2rem;
-    background: linear-gradient(145deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);
+    padding: 2.5rem 1.5rem;
+    background: rgba(255, 255, 255, 0.03);
     border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 24px;
     position: relative;
-    box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
   }
   .user-item .u-info {
     justify-content: center;
     margin-bottom: 0.5rem;
   }
   .user-item .u-name { 
-    font-size: 1.5rem; 
+    font-size: 1.4rem; 
     display: block;
     margin-bottom: 0;
-    font-weight: 800;
   }
   .user-item .u-email {
     display: block;
-    font-size: 0.85rem;
-    color: #94a3b8;
-    margin-bottom: 1.2rem;
-    letter-spacing: 0.05em;
+    font-size: 0.95rem;
+    color: #64748b;
+    margin-bottom: 1rem;
   }
   .user-item .u-instrument-wrapper {
     display: flex;
     justify-content: center;
-    margin-bottom: 0.5rem;
   }
-  .user-item .u-actions {
-    position: absolute;
-    top: 1rem;
-    right: 1.5rem;
-    display: flex; /* Added display flex for justify-content to work */
-    justify-content: flex-end;
+  .user-item .u-actions, .u-actions {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    display: flex;
+    justify-content: center;
+    position: static;
+  }
+  .u-delete-btn {
+    width: 100%;
+    padding: 0.8rem;
+    justify-content: center;
   }
   .admin-header {
     flex-direction: column;
-    gap: 1.5rem;
+    gap: 1rem;
     text-align: center;
   }
   .admin-header h2 {
-    font-size: 1.8rem;
-  }
-  .u-actions { /* This rule was already present, keeping it for .u-delete-btn context */
-    display: flex;
-    justify-content: center;
+    font-size: 1.5rem;
   }
   .u-delete-btn {
     width: 100%;
