@@ -24,6 +24,7 @@ body {
   color: var(--color-text);
   overflow-x: hidden;
   min-height: 100vh;
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* Hyper-Premium Visual Engine */
@@ -78,6 +79,12 @@ body {
   perspective: var(--perspective);
 }
 
+@media (max-width: 768px) {
+  .container {
+    padding: 4rem 1.25rem;
+  }
+}
+
 .header {
   margin-bottom: 8rem;
   animation: premium-entry 1.4s cubic-bezier(0.16, 1, 0.3, 1);
@@ -111,8 +118,23 @@ body {
 
 .login-btn {
   position: absolute;
-  top: 1rem;
-  right: 1rem;
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+}
+
+@media (max-width: 900px) {
+  .header-content {
+    flex-direction: column;
+    gap: 2rem;
+  }
+  .login-btn {
+    position: relative;
+    top: 0;
+    right: 0;
+    transform: none;
+    width: fit-content;
+  }
 }
 
 @keyframes premium-entry {
@@ -159,16 +181,17 @@ body {
 
 .logo {
   font-family: 'Montserrat', sans-serif;
-  font-size: 7.5rem;
+  font-size: clamp(3rem, 15vw, 7.5rem);
   font-weight: 900;
   text-transform: uppercase;
   background: linear-gradient(to bottom, #fff 0%, #a7f3d0 30%, #34d399 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
   letter-spacing: -0.05em;
   filter: drop-shadow(0 0 50px rgba(16, 185, 129, 0.2));
   position: relative;
+  line-height: 1;
 }
 
 /* Shimmer Effect for Logo */
@@ -190,14 +213,15 @@ body {
 }
 
 .tagline {
-  font-size: 1.2rem;
+  font-size: clamp(0.8rem, 3vw, 1.2rem);
   color: #94a3b8;
   text-transform: uppercase;
-  letter-spacing: 0.6em;
+  letter-spacing: 0.4em;
   font-weight: 300;
   opacity: 0.8;
   transition: all 0.5s ease;
   cursor: default;
+  text-align: center;
 }
 
 .logo-group:hover .tagline {
@@ -237,7 +261,8 @@ body {
 .filters {
   display: flex;
   justify-content: center;
-  gap: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
   margin-bottom: 6rem;
 }
 
@@ -271,9 +296,15 @@ body {
 /* 3D Song Grid */
 .song-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  gap: 3.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 2rem;
   transform-style: preserve-3d;
+}
+@media (min-width: 900px) {
+  .song-grid {
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 3.5rem;
+  }
 }
 
 .song-card {
@@ -313,19 +344,19 @@ body {
 }
 
 .song-category {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   text-transform: uppercase;
-  letter-spacing: 0.3em;
+  letter-spacing: 0.25em;
   color: var(--color-primary);
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
   display: block;
   font-weight: 800;
 }
 
 .song-card h3 {
-  font-size: 2.2rem;
-  margin-bottom: 1.25rem;
-  line-height: 1.1;
+  font-size: clamp(1.5rem, 6vw, 2.2rem);
+  margin-bottom: 1rem;
+  line-height: 1.2;
   font-family: 'Montserrat', sans-serif;
   color: #fff;
   transition: transform 0.4s ease;
@@ -433,7 +464,7 @@ body {
 
 .modal-header {
   text-align: center;
-  margin-bottom: 4rem;
+  margin-bottom: 2rem;
 }
 
 @keyframes modal-float {
@@ -468,14 +499,17 @@ body {
 }
 
 .lyrics {
-  font-size: 1.8rem;
-  line-height: 2.4;
+  font-family: 'Montserrat', sans-serif;
+  font-size: clamp(1.2rem, 5vw, 2.2rem);
+  line-height: 2;
   color: #e2e8f0;
-  font-weight: 300;
-  white-space: pre-line;
-  margin-top: 5rem;
-  font-family: 'Outfit', sans-serif;
-  letter-spacing: -0.01em;
+  white-space: pre-wrap;
+  margin-bottom: 2rem;
+  text-align: center;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 0.3s ease;
+  padding: 0 2rem;
 }
 
 .lyrics div {
@@ -499,9 +533,14 @@ body {
   right: 0;
   background: linear-gradient(to top, rgba(10, 10, 15, 1) 70%, rgba(10, 10, 15, 0.8));
   border-top: 1px solid rgba(255, 255, 255, 0.08);
-  padding: 3rem 6rem;
+  padding: 2rem;
   backdrop-filter: blur(20px);
   z-index: 10;
+}
+@media (min-width: 768px) {
+  .audio-player {
+    padding: 3rem 6rem;
+  }
 }
 
 .player-top {
@@ -541,7 +580,12 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 3rem;
+  gap: 1.5rem;
+}
+@media (min-width: 768px) {
+  .player-controls {
+    gap: 3rem;
+  }
 }
 
 .player-btn {
@@ -591,19 +635,16 @@ body {
 
 /* Responsive Overrides */
 @media (max-width: 768px) {
-  .logo { font-size: 4rem; }
-  .container { padding: 3rem 1.5rem; }
-  .song-grid { grid-template-columns: 1fr; gap: 2.5rem; }
-  .modal-close { top: 1.5rem; right: 2rem; width: 55px; height: 55px; }
-  .lyrics { font-size: 1.4rem; }
-  .header-content { text-align: center; }
-  .logo-group { text-align: center; }
-  .logo { font-size: 3.5rem; }
-  .login-btn { position: relative; top: 0; right: 0; margin-top: 1rem; justify-content: center; }
+  .logo { font-size: clamp(3rem, 12vw, 4rem); }
+  .container { padding: 3rem 1.25rem; }
+  .modal-close { top: 1rem; right: 1rem; width: 45px; height: 45px; font-size: 2rem; }
+  .modal-body { padding: 4rem 5% 200px; }
+  .player-btn.primary { width: 55px; height: 55px; font-size: 1.5rem; }
+  .player-btn.secondary { font-size: 1.5rem; }
   .footer-grid { grid-template-columns: 1fr; gap: 3rem; text-align: center; }
   .footer-logo { font-size: 2.5rem; }
-  .admin-strip { flex-direction: column; gap: 1rem; text-align: center; }
-  .admin-links { flex-wrap: wrap; justify-content: center; }
+  .admin-strip { flex-direction: column; gap: 1.5rem; text-align: center; }
+  .admin-links { flex-wrap: wrap; justify-content: center; gap: 1.5rem; }
 }
 
 /* Footer Styling */
