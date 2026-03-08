@@ -123,6 +123,53 @@ body {
   transform: translateY(-50%);
 }
 
+@media (max-width: 860px) {
+  .user-list-header { display: none; }
+  .user-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+    max-height: 60vh;
+    padding-bottom: 2rem;
+  }
+  .user-item { 
+    grid-template-columns: 1fr; 
+    gap: 1rem; 
+    text-align: center;
+    padding: 2.5rem 1.5rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    position: relative;
+  }
+  .user-item .u-name { 
+    font-size: 1.4rem; 
+    display: block;
+    margin-bottom: 0.5rem;
+  }
+  .user-item .u-email {
+    display: block;
+    font-size: 0.95rem;
+    color: #64748b;
+    margin-bottom: 1rem;
+  }
+  .user-item .u-instrument-wrapper {
+    display: flex;
+    justify-content: center;
+  }
+  .u-actions {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    display: flex;
+    justify-content: center;
+  }
+  .u-delete-btn {
+    width: 100%;
+    padding: 0.8rem;
+    justify-content: center;
+  }
+}
+
 @media (max-width: 900px) {
   .header-content {
     flex-direction: column;
@@ -614,13 +661,21 @@ body {
 }
 
 .player-btn.secondary {
-  font-size: 2rem;
+  font-size: 2.2rem;
   color: #94a3b8;
+  opacity: 0.8;
 }
 
 .player-btn.secondary:hover {
   color: #fff;
-  transform: scale(1.2);
+  transform: scale(1.15);
+  opacity: 1;
+}
+
+@media (max-width: 768px) {
+  .player-btn.secondary {
+    font-size: 1.8rem;
+  }
 }
 
 .player-btn.tertiary {
@@ -1171,10 +1226,11 @@ body {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  max-height: 350px;
+  max-height: 450px;
   overflow-y: auto;
   padding-right: 1.5rem;
   scrollbar-width: thin;
+  scroll-behavior: smooth;
 }
 
 .user-item {

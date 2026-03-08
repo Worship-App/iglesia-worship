@@ -27,6 +27,8 @@ const currentTimeEl = document.querySelector<HTMLSpanElement>('.time.current')!;
 const totalTimeEl = document.querySelector<HTMLSpanElement>('.time.total')!;
 const playPauseBtn = document.querySelector<HTMLButtonElement>('#play-pause-btn')!;
 const playIcon = document.querySelector<HTMLSpanElement>('#play-icon')!;
+const prevBtn = document.querySelector<HTMLButtonElement>('#prev-btn')!;
+const nextBtn = document.querySelector<HTMLButtonElement>('#next-btn')!;
 
 // Auth Elements
 const authModal = document.querySelector<HTMLDivElement>('#auth-modal')!;
@@ -50,6 +52,7 @@ let authMode: 'login' | 'register' = 'login';
 let currentUser: User | null = JSON.parse(localStorage.getItem('worship_user') || 'null');
 let currentAudio: HTMLAudioElement | null = null;
 let isPlaying = false;
+let currentSongId: string | null = null;
 
 // Initialization
 function init() {
@@ -158,7 +161,12 @@ function openSongModal(song: Song) {
 
   currentAudio.addEventListener('error', handleError, { once: true });
   currentAudio.addEventListener('timeupdate', updateProgress);
+  currentAudio.addEventListener('ended', playNextSong);
   
+  // Set Hash for History
+  location.hash = `#song-${song.id}`;
+  currentSongId = song.id;
+
   // Verificamos si carga correctamente
   currentAudio.addEventListener('canplaythrough', () => {
     console.log(`✅ Audio cargado exitosamente: ${audioPath}`);
@@ -166,24 +174,76 @@ function openSongModal(song: Song) {
   currentAudio.addEventListener('loadedmetadata', () => {
     totalTimeEl.textContent = formatTime(currentAudio!.duration);
   });
-  currentAudio.addEventListener('ended', () => {
-    isPlaying = false;
-    updatePlayButton();
-  });
 
   songModal.classList.add('active');
   document.body.style.overflow = 'hidden';
 }
 
+function playNextSong() {
+  if (!currentSongId) return;
+  const currentIndex = songs.findIndex(s => s.id === currentSongId);
+  const nextIndex = (currentIndex + 1) % songs.length;
+  openSongModal(songs[nextIndex]);
+  // Auto-play if was playing? 
+  // For usability, we just play it
+  if (currentAudio) currentAudio.play().then(() => {
+    isPlaying = true;
+    updatePlayButton();
+  }).catch(console.error);
+}
+
+function playPreviousSong() {
+  if (!currentSongId) return;
+  const currentIndex = songs.findIndex(s => s.id === currentSongId);
+  const prevIndex = (currentIndex - 1 + songs.length) % songs.length;
+  openSongModal(songs[prevIndex]);
+  if (currentAudio) currentAudio.play().then(() => {
+    isPlaying = true;
+    updatePlayButton();
+  }).catch(console.error);
+}
+
 function closeSongModal() {
   if (currentAudio) {
     currentAudio.pause();
-    currentAudio = null;
+    isPlaying = false;
+    updatePlayButton();
   }
-  isPlaying = false;
   songModal.classList.remove('active');
   document.body.style.overflow = '';
+  if (location.hash.startsWith('#song-')) {
+    history.back(); // This will trigger hashchange
+  }
 }
+
+// History Handling
+window.addEventListener('hashchange', () => {
+  const hash = location.hash;
+  if (!hash) {
+    // Close everything
+    songModal.classList.remove('active');
+    adminDashboard.classList.add('hidden');
+    authModal.classList.remove('active'); // Changed from hidden to remove('active')
+    document.body.style.overflow = '';
+    if (currentAudio) currentAudio.pause();
+  } else if (hash.startsWith('#song-')) {
+    const id = hash.replace('#song-', '');
+    const song = songs.find(s => s.id === id);
+    if (song && !songModal.classList.contains('active')) {
+      openSongModal(song);
+    }
+  } else if (hash === '#admin') {
+    if (currentUser && currentUser.role === 'admin' && adminDashboard.classList.contains('hidden')) {
+      openAdminDashboard();
+    } else if (!currentUser || currentUser.role !== 'admin') {
+      history.replaceState(null, '', '/'); // Clear hash if not authorized
+    }
+  } else if (hash === '#auth') {
+    if (!authModal.classList.contains('active')) {
+      toggleAuthModal(true);
+    }
+  }
+});
 
 function togglePlay() {
   if (!currentAudio) return;
@@ -251,11 +311,15 @@ function toggleAuthModal(show: boolean) {
   if (show) {
     authModal.classList.add('active');
     document.body.style.overflow = 'hidden';
+    location.hash = '#auth';
   } else {
     authModal.classList.remove('active');
     document.body.style.overflow = '';
     authMessage.textContent = '';
     authForm.reset();
+    if (location.hash === '#auth') {
+      history.back();
+    }
   }
 }
 
@@ -384,6 +448,16 @@ function openAdminDashboard() {
   `).join('');
 
   adminDashboard.classList.remove('hidden');
+  document.body.style.overflow = 'hidden'; // Prevent scrolling behind modal
+  location.hash = '#admin';
+}
+
+function closeAdminDashboard() {
+  adminDashboard.classList.add('hidden');
+  document.body.style.overflow = ''; // Restore scrolling
+  if (location.hash === '#admin') {
+    history.back();
+  }
 }
 
 // @ts-ignore - Exporting to global scope for the onclick handler
@@ -412,10 +486,17 @@ function setupEventListeners() {
   });
 
   modalClose.addEventListener('click', closeSongModal);
+  adminClose.addEventListener('click', closeAdminDashboard);
+  
+  prevBtn.addEventListener('click', playPreviousSong);
+  nextBtn.addEventListener('click', playNextSong);
+
   window.addEventListener('click', (e) => {
     if (e.target === songModal) closeSongModal();
-    if (e.target === authModal) toggleAuthModal(false);
-    if (e.target === adminDashboard) adminDashboard.classList.add('hidden');
+    if (e.target === adminDashboard) closeAdminDashboard();
+    if (e.target === authModal) {
+      toggleAuthModal(false); // Use toggleAuthModal to handle hash
+    }
   });
 
   authTrigger.addEventListener('click', () => {
