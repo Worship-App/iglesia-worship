@@ -274,27 +274,29 @@ function updateProgress() {
   progressBar.style.width = `${progressPercent}%`;
   currentTimeEl.textContent = formatTime(currentTime);
 
-  // Active lyric line highlight (sync by time proportion)
+  // Active lyric line highlight - with 2.5s lookahead to feel "in sync"
   if (duration > 0) {
     const lyricLines = modalLyrics.querySelectorAll<HTMLElement>('.lyric-line');
     const totalLines = lyricLines.length;
     if (totalLines > 0) {
+      // Look ahead 2.5 seconds so the line highlights JUST before it's sung
+      const syncTime = Math.min(currentTime + 2.5, duration);
       const activeIndex = Math.min(
-        Math.floor((currentTime / duration) * totalLines),
+        Math.floor((syncTime / duration) * totalLines),
         totalLines - 1
       );
       lyricLines.forEach((el, i) => {
         el.classList.toggle('lyric-active', i === activeIndex);
         el.classList.toggle('lyric-past', i < activeIndex);
       });
-      // Smooth scroll the active line into center view
+      // Snap-scroll the active line into center view (no smooth lag)
       const activeLine = lyricLines[activeIndex];
       if (activeLine) {
         const lineTop = activeLine.offsetTop;
         const lineH = activeLine.offsetHeight;
         const containerH = modalBody.clientHeight;
         const target = lineTop - containerH / 2 + lineH / 2;
-        modalBody.scrollTo({ top: Math.max(0, target), behavior: 'smooth' });
+        modalBody.scrollTop = Math.max(0, target);
       }
     }
   }
