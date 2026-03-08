@@ -9,6 +9,7 @@ interface User {
   instrument: string;
   password?: string;
   role: 'user' | 'admin';
+  lastActive?: number; // timestamp in ms
 }
 
 // DOM Elements
@@ -57,7 +58,9 @@ let currentSong: Song | null = null;
 // Initialization
 function init() {
   updateUserUI();
+  setupPresenceTracking();
   renderSongs();
+// ... (rest of init)
   setupEventListeners();
   
   // Create default admin if not exists
@@ -70,6 +73,37 @@ function init() {
       password: 'admin',
       role: 'admin'
     });
+    localStorage.setItem('worship_users', JSON.stringify(users));
+  }
+}
+
+// Presence Tracking (Heartbeat)
+function setupPresenceTracking() {
+  // Update immediately on load
+  updatePresence();
+  
+  // Update every 1 minute
+  setInterval(updatePresence, 60000);
+  
+  // Update on visibility change or user interaction
+  window.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') updatePresence();
+  });
+  window.addEventListener('click', () => updatePresence(), { once: false, passive: true });
+}
+
+let lastPresenceUpdate = 0;
+function updatePresence() {
+  if (!currentUser) return;
+  const now = Date.now();
+  // Prevent flooding: max 1 update every 10 seconds per user locally
+  if (now - lastPresenceUpdate < 10000) return;
+  
+  lastPresenceUpdate = now;
+  const users: User[] = JSON.parse(localStorage.getItem('worship_users') || '[]');
+  const userIndex = users.findIndex(u => u.email === currentUser!.email);
+  if (userIndex !== -1) {
+    users[userIndex].lastActive = now;
     localStorage.setItem('worship_users', JSON.stringify(users));
   }
 }
@@ -431,13 +465,27 @@ function openAdminDashboard() {
   // Calculate Stats
   const totalUsers = users.length;
   const instrumentCounts: Record<string, number> = {};
+  
+  const now = Date.now();
+  const FIVE_MINUTES_MS = 5 * 60 * 1000;
+  let onlineCount = 0;
+
   users.forEach(u => {
     instrumentCounts[u.instrument] = (instrumentCounts[u.instrument] || 0) + 1;
+    // Check if user is online
+    if (u.lastActive && (now - u.lastActive) < FIVE_MINUTES_MS) {
+      onlineCount++;
+    }
   });
 
   // Render Stats with Icons
   const statsContainer = document.querySelector('#admin-stats')!;
   statsContainer.innerHTML = `
+    <div class="stat-card" style="border-color: rgba(16, 185, 129, 0.4);">
+      <div class="stat-icon" style="text-shadow: 0 0 15px #10b981;">🟢</div>
+      <span class="stat-value" style="color: #10b981;">${onlineCount}</span>
+      <span class="stat-label">Conectados</span>
+    </div>
     <div class="stat-card">
       <div class="stat-icon">👥</div>
       <span class="stat-value">${totalUsers}</span>
@@ -455,10 +503,16 @@ function openAdminDashboard() {
     </div>
   `;
 
-  // Render User List with staggered animation
-  userListContainer.innerHTML = users.map((user, index) => `
+  // Render User List with staggered animation and online indicator
+  userListContainer.innerHTML = users.map((user, index) => {
+    const isOnline = user.lastActive && (now - user.lastActive) < FIVE_MINUTES_MS;
+    const statusClass = isOnline ? 'status-online' : 'status-offline';
+    const statusTitle = isOnline ? 'En línea ahora' : 'Desconectado';
+    
+    return `
     <div class="user-item" style="animation-delay: ${index * 0.1}s">
       <div class="u-info">
+        <div class="status-dot ${statusClass}" title="${statusTitle}"></div>
         <span class="u-name">${user.name}</span>
       </div>
       <span class="u-email">${user.email}</span>
@@ -471,7 +525,7 @@ function openAdminDashboard() {
         ` : '<span style="opacity: 0.3">🛡️</span>'}
       </div>
     </div>
-  `).join('');
+  `}).join('');
 
   adminDashboard.classList.remove('hidden');
   document.body.style.overflow = 'hidden'; // Prevent scrolling behind modal
