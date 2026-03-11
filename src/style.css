@@ -1241,34 +1241,38 @@ body {
   flex-direction: column;
   gap: 1rem;
   max-height: 450px;
-  overflow-y: scroll; /* Changed from auto to scroll to always show scrollbar */
-  padding-right: 1.5rem;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(16, 185, 129, 0.5) rgba(255, 255, 255, 0.05);
+  overflow-y: scroll !important; /* Force scrollbar to always show */
+  padding-right: 0.5rem;
+  scrollbar-width: auto; /* Changed from thin to auto for better visibility */
+  scrollbar-color: #10b981 rgba(255, 255, 255, 0.1);
   scroll-behavior: smooth;
 }
 
 /* Custom Scrollbar for Webkit browsers (Chrome, Safari, Edge) */
 .user-list::-webkit-scrollbar {
-  width: 12px;
+  width: 14px; /* Increased width for better visibility */
+  display: block !important;
 }
 
 .user-list::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.1);
   border-radius: 10px;
   margin: 10px 0;
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .user-list::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, rgba(16, 185, 129, 0.6), rgba(16, 185, 129, 0.4));
+  background: linear-gradient(180deg, #10b981, #059669);
   border-radius: 10px;
-  border: 2px solid rgba(255, 255, 255, 0.05);
+  border: 2px solid rgba(2, 6, 23, 0.5);
   transition: all 0.3s ease;
+  min-height: 40px; /* Ensure thumb is always visible */
 }
 
 .user-list::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, rgba(16, 185, 129, 0.8), rgba(16, 185, 129, 0.6));
-  border-color: rgba(16, 185, 129, 0.2);
+  background: linear-gradient(180deg, #34d399, #10b981);
+  border-color: rgba(16, 185, 129, 0.3);
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
 }
 
 .user-item {
