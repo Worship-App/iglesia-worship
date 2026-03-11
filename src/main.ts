@@ -12,6 +12,17 @@ interface User {
   lastActive?: number; // timestamp in ms
 }
 
+interface SettingsConfig {
+  volume: number;
+  microphoneId: string;
+  speakerId: string;
+}
+
+interface AudioDevices {
+  microphones: MediaDeviceInfo[];
+  speakers: MediaDeviceInfo[];
+}
+
 // DOM Elements
 const songGrid = document.querySelector<HTMLDivElement>('#song-grid')!;
 const searchInput = document.querySelector<HTMLInputElement>('#search-input')!;
@@ -278,7 +289,9 @@ window.addEventListener('hashchange', () => {
     adminDashboard.classList.add('hidden');
     authModal.classList.remove('active');
     const musiciansPanel = document.querySelector('#musicians-panel');
+    const settingsPanel = document.querySelector('#settings-panel');
     if (musiciansPanel) musiciansPanel.classList.add('hidden');
+    if (settingsPanel) settingsPanel.classList.add('hidden');
     document.body.style.overflow = '';
     if (currentAudio) currentAudio.pause();
   } else if (hash.startsWith('#song-')) {
@@ -298,6 +311,14 @@ window.addEventListener('hashchange', () => {
     if (currentUser && currentUser.role === 'admin' && musiciansPanel?.classList.contains('hidden')) {
       openMusiciansPanel();
     } else if (!currentUser || currentUser.role !== 'admin') {
+      history.replaceState(null, '', '/');
+    }
+  } else if (hash === '#settings') {
+    const settingsPanel = document.querySelector('#settings-panel');
+    if (currentUser && settingsPanel?.classList.contains('hidden')) {
+      openSettingsPanel();
+    } else if (!currentUser) {
+      toggleAuthModal(true);
       history.replaceState(null, '', '/');
     }
   } else if (hash === '#auth') {
@@ -617,17 +638,18 @@ function handleFooterAdminLoginClick(e: Event) {
   toggleAuthModal(true);
 }
 
-function handleFooterPlaceholderClick(e: Event, featureName: string) {
-  e.preventDefault();
-  
-  // Check if it's the Musicians Management link
-  if (featureName === 'Gestión de Músicos') {
-    openMusiciansPanel();
-    return;
-  }
-  
-  alert(`La funcionalidad de ${featureName} estará disponible próximamente`);
-}
+// Deprecated: This function is no longer used
+// function handleFooterPlaceholderClick(e: Event, featureName: string) {
+//   e.preventDefault();
+//   
+//   // Check if it's the Musicians Management link
+//   if (featureName === 'Gestión de Músicos') {
+//     openMusiciansPanel();
+//     return;
+//   }
+//   
+//   alert(`La funcionalidad de ${featureName} estará disponible próximamente`);
+// }
 
 function setupEventListeners() {
   searchInput.addEventListener('input', (e) => {
@@ -760,9 +782,54 @@ function setupEventListeners() {
   }
 
   if (footerConfigLink) {
-    footerConfigLink.addEventListener('click', (e) => handleFooterPlaceholderClick(e, 'Configuración'));
+    footerConfigLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      openSettingsPanel();
+    });
   } else {
     console.warn('Footer config link element not found');
+  }
+  
+  // Settings Panel Event Listeners
+  const settingsCloseBtn = document.querySelector<HTMLButtonElement>('.settings-close-btn');
+  const settingsOverlay = document.querySelector<HTMLDivElement>('.settings-overlay');
+  const settingsSaveBtn = document.querySelector<HTMLButtonElement>('#settings-save-btn');
+  const volumeSlider = document.querySelector<HTMLInputElement>('#volume-slider');
+  const microphoneSelect = document.querySelector<HTMLSelectElement>('#microphone-select');
+  const speakerSelect = document.querySelector<HTMLSelectElement>('#speaker-select');
+  const testMicrophoneBtn = document.querySelector<HTMLButtonElement>('#test-microphone-btn');
+  const testSpeakerBtn = document.querySelector<HTMLButtonElement>('#test-speaker-btn');
+
+  if (settingsCloseBtn) {
+    settingsCloseBtn.addEventListener('click', closeSettingsPanel);
+  }
+
+  if (settingsOverlay) {
+    settingsOverlay.addEventListener('click', closeSettingsPanel);
+  }
+
+  if (settingsSaveBtn) {
+    settingsSaveBtn.addEventListener('click', closeSettingsPanel);
+  }
+
+  if (volumeSlider) {
+    volumeSlider.addEventListener('input', handleVolumeChange);
+  }
+
+  if (microphoneSelect) {
+    microphoneSelect.addEventListener('change', (e) => handleDeviceSelection(e, 'microphone'));
+  }
+
+  if (speakerSelect) {
+    speakerSelect.addEventListener('change', (e) => handleDeviceSelection(e, 'speaker'));
+  }
+
+  if (testMicrophoneBtn) {
+    testMicrophoneBtn.addEventListener('click', () => testAudioDevice('microphone'));
+  }
+
+  if (testSpeakerBtn) {
+    testSpeakerBtn.addEventListener('click', () => testAudioDevice('speaker'));
   }
   
   // Admin Musicians Button
@@ -857,16 +924,274 @@ function setupEventListeners() {
   document.addEventListener('keydown', (e) => {
     // Escape key closes modals
     if (e.key === 'Escape') {
+      const settingsPanel = document.querySelector('#settings-panel');
       const musiciansPanel = document.querySelector('#musicians-panel');
       const musicianFormModal = document.querySelector('#musician-form-modal');
       
-      if (musicianFormModal?.classList.contains('active')) {
+      if (settingsPanel && !settingsPanel.classList.contains('hidden')) {
+        closeSettingsPanel();
+      } else if (musicianFormModal?.classList.contains('active')) {
         closeMusicianForm();
       } else if (musiciansPanel && !musiciansPanel.classList.contains('hidden')) {
         closeMusiciansPanel();
       }
     }
   });
+}
+
+// =====================
+// SETTINGS PANEL FUNCTIONS
+// =====================
+
+// Default settings
+const DEFAULT_SETTINGS: SettingsConfig = {
+  volume: 50,
+  microphoneId: 'default',
+  speakerId: 'default'
+};
+
+// Load settings from localStorage
+function loadSettings(): SettingsConfig {
+  try {
+    const saved = localStorage.getItem('worship_settings');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      return {
+        volume: parsed.volume ?? DEFAULT_SETTINGS.volume,
+        microphoneId: parsed.microphoneId ?? DEFAULT_SETTINGS.microphoneId,
+        speakerId: parsed.speakerId ?? DEFAULT_SETTINGS.speakerId
+      };
+    }
+  } catch (error) {
+    console.warn('Invalid settings JSON in localStorage:', error);
+  }
+  return DEFAULT_SETTINGS;
+}
+
+// Save settings to localStorage
+function saveSettings(): void {
+  try {
+    const volumeSlider = document.querySelector<HTMLInputElement>('#volume-slider');
+    const microphoneSelect = document.querySelector<HTMLSelectElement>('#microphone-select');
+    const speakerSelect = document.querySelector<HTMLSelectElement>('#speaker-select');
+
+    const settings: SettingsConfig = {
+      volume: volumeSlider ? parseInt(volumeSlider.value) : DEFAULT_SETTINGS.volume,
+      microphoneId: microphoneSelect ? microphoneSelect.value : DEFAULT_SETTINGS.microphoneId,
+      speakerId: speakerSelect ? speakerSelect.value : DEFAULT_SETTINGS.speakerId
+    };
+
+    localStorage.setItem('worship_settings', JSON.stringify(settings));
+  } catch (error) {
+    if (error instanceof Error) {
+      if (error.name === 'QuotaExceededError') {
+        console.warn('localStorage quota exceeded');
+      } else if (error.name === 'SecurityError') {
+        console.warn('localStorage not available in private mode');
+      }
+    }
+  }
+}
+
+// Detect audio devices
+async function detectAudioDevices(): Promise<AudioDevices> {
+  const result: AudioDevices = {
+    microphones: [],
+    speakers: []
+  };
+
+  try {
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    
+    devices.forEach(device => {
+      if (device.kind === 'audioinput') {
+        result.microphones.push(device);
+      } else if (device.kind === 'audiooutput') {
+        result.speakers.push(device);
+      }
+    });
+  } catch (error) {
+    console.error('Error enumerating devices:', error);
+    if (error instanceof Error) {
+      if (error.name === 'NotAllowedError') {
+        console.warn('Audio permissions not granted');
+      }
+    }
+  }
+
+  return result;
+}
+
+// Populate device selectors
+async function populateDeviceSelectors(): Promise<void> {
+  const devices = await detectAudioDevices();
+  const microphoneSelect = document.querySelector<HTMLSelectElement>('#microphone-select');
+  const speakerSelect = document.querySelector<HTMLSelectElement>('#speaker-select');
+
+  if (microphoneSelect) {
+    // Clear existing options except default
+    microphoneSelect.innerHTML = '<option value="default">Dispositivo por defecto</option>';
+    
+    if (devices.microphones.length === 0) {
+      const option = document.createElement('option');
+      option.value = 'none';
+      option.textContent = 'No hay dispositivos disponibles';
+      option.disabled = true;
+      microphoneSelect.appendChild(option);
+    } else {
+      devices.microphones.forEach(device => {
+        const option = document.createElement('option');
+        option.value = device.deviceId;
+        option.textContent = device.label || `Micrófono ${device.deviceId.substring(0, 5)}`;
+        microphoneSelect.appendChild(option);
+      });
+    }
+  }
+
+  if (speakerSelect) {
+    // Clear existing options except default
+    speakerSelect.innerHTML = '<option value="default">Dispositivo por defecto</option>';
+    
+    if (devices.speakers.length === 0) {
+      const option = document.createElement('option');
+      option.value = 'none';
+      option.textContent = 'No hay dispositivos disponibles';
+      option.disabled = true;
+      speakerSelect.appendChild(option);
+    } else {
+      devices.speakers.forEach(device => {
+        const option = document.createElement('option');
+        option.value = device.deviceId;
+        option.textContent = device.label || `Altavoz ${device.deviceId.substring(0, 5)}`;
+        speakerSelect.appendChild(option);
+      });
+    }
+  }
+}
+
+// Handle volume change
+function handleVolumeChange(event: Event): void {
+  const slider = event.target as HTMLInputElement;
+  const value = parseInt(slider.value);
+  const volumeValue = document.querySelector<HTMLSpanElement>('#volume-value');
+  
+  if (volumeValue) {
+    volumeValue.textContent = `${value}%`;
+  }
+  
+  // Save immediately
+  saveSettings();
+}
+
+// Handle device selection
+function handleDeviceSelection(_event: Event, _deviceType: 'microphone' | 'speaker'): void {
+  // Save immediately
+  saveSettings();
+}
+
+// Test audio device
+async function testAudioDevice(deviceType: 'microphone' | 'speaker'): Promise<void> {
+  const messageElement = deviceType === 'microphone' 
+    ? document.querySelector<HTMLDivElement>('#microphone-message')
+    : document.querySelector<HTMLDivElement>('#speaker-message');
+
+  if (!messageElement) return;
+
+  try {
+    messageElement.textContent = 'Reproduciendo sonido de prueba...';
+    messageElement.classList.remove('error', 'success');
+
+    // Create audio context
+    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    
+    // Create oscillator for test tone (440 Hz)
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    
+    oscillator.frequency.value = 440; // A4 note
+    oscillator.type = 'sine';
+    
+    // Set volume to 30% to avoid loud noise
+    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 1);
+    
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + 1);
+    
+    // Wait for sound to finish
+    await new Promise(resolve => setTimeout(resolve, 1100));
+    
+    messageElement.textContent = '✓ Sonido de prueba reproducido correctamente';
+    messageElement.classList.add('success');
+  } catch (error) {
+    console.error('Error testing audio device:', error);
+    messageElement.textContent = '✗ Error al reproducir sonido de prueba';
+    messageElement.classList.add('error');
+  }
+}
+
+// Open Settings Panel
+async function openSettingsPanel(): Promise<void> {
+  if (!currentUser) {
+    toggleAuthModal(true);
+    return;
+  }
+
+  const settingsPanel = document.querySelector<HTMLDivElement>('#settings-panel');
+  if (!settingsPanel) return;
+
+  // Load settings
+  const settings = loadSettings();
+  
+  // Update controls with loaded settings
+  const volumeSlider = document.querySelector<HTMLInputElement>('#volume-slider');
+  const volumeValue = document.querySelector<HTMLSpanElement>('#volume-value');
+  const microphoneSelect = document.querySelector<HTMLSelectElement>('#microphone-select');
+  const speakerSelect = document.querySelector<HTMLSelectElement>('#speaker-select');
+
+  if (volumeSlider) {
+    volumeSlider.value = settings.volume.toString();
+  }
+  if (volumeValue) {
+    volumeValue.textContent = `${settings.volume}%`;
+  }
+  if (microphoneSelect) {
+    microphoneSelect.value = settings.microphoneId;
+  }
+  if (speakerSelect) {
+    speakerSelect.value = settings.speakerId;
+  }
+
+  // Detect and populate devices
+  await populateDeviceSelectors();
+
+  // Show panel
+  settingsPanel.classList.remove('hidden');
+  settingsPanel.classList.add('visible');
+  document.body.style.overflow = 'hidden';
+  location.hash = '#settings';
+}
+
+// Close Settings Panel
+function closeSettingsPanel(): void {
+  const settingsPanel = document.querySelector<HTMLDivElement>('#settings-panel');
+  if (!settingsPanel) return;
+
+  // Save settings
+  saveSettings();
+
+  // Hide panel
+  settingsPanel.classList.add('hidden');
+  settingsPanel.classList.remove('visible');
+  document.body.style.overflow = '';
+  
+  // Restore previous hash
+  if (location.hash === '#settings') {
+    location.hash = '';
+  }
 }
 
 // =====================

@@ -297,6 +297,72 @@
       </div>
     </div>
 
+    <!-- Settings Panel -->
+    <div id="settings-panel" class="settings-panel hidden" role="dialog" aria-modal="true" aria-labelledby="settings-panel-title">
+      <div class="settings-overlay"></div>
+      <div class="settings-content">
+        <!-- Header -->
+        <div class="settings-header">
+          <h2 id="settings-panel-title" class="settings-title">Configuración</h2>
+          <button class="settings-close-btn" aria-label="Cerrar configuración">
+            <span class="close-icon">×</span>
+          </button>
+        </div>
+
+        <!-- Volume Control Section -->
+        <div class="settings-section">
+          <label for="volume-slider" class="settings-label">Volumen</label>
+          <div class="volume-control">
+            <input 
+              type="range" 
+              id="volume-slider" 
+              class="volume-slider"
+              min="0" 
+              max="100" 
+              value="50"
+              aria-label="Control de volumen"
+            />
+            <span class="volume-value" id="volume-value">50%</span>
+          </div>
+        </div>
+
+        <!-- Microphone Selection Section -->
+        <div class="settings-section">
+          <label for="microphone-select" class="settings-label">Micrófono</label>
+          <div class="device-control">
+            <select id="microphone-select" class="device-select" aria-label="Seleccionar micrófono">
+              <option value="default">Dispositivo por defecto</option>
+            </select>
+            <button class="test-device-btn" id="test-microphone-btn" aria-label="Probar micrófono">
+              Probar Micrófono
+            </button>
+          </div>
+          <div id="microphone-message" class="device-message"></div>
+        </div>
+
+        <!-- Speaker Selection Section -->
+        <div class="settings-section">
+          <label for="speaker-select" class="settings-label">Altavoz</label>
+          <div class="device-control">
+            <select id="speaker-select" class="device-select" aria-label="Seleccionar altavoz">
+              <option value="default">Dispositivo por defecto</option>
+            </select>
+            <button class="test-device-btn" id="test-speaker-btn" aria-label="Probar altavoz">
+              Probar Altavoz
+            </button>
+          </div>
+          <div id="speaker-message" class="device-message"></div>
+        </div>
+
+        <!-- Footer -->
+        <div class="settings-footer">
+          <button class="settings-save-btn" id="settings-save-btn">
+            Guardar y Cerrar
+          </button>
+        </div>
+      </div>
+    </div>
+
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
